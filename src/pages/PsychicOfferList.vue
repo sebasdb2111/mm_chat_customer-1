@@ -50,16 +50,10 @@
         return getYear(date);
       },
       async createChat(psychicId) {
-        this.$store
-          .dispatch('chatSession/createChatSession', {
-            psychicId: psychicId,
-            userId: null
-          });
+          await this.$store.dispatch('chatSession/createChatSession', {psychicId: psychicId, userId: null});
+          const chatSession = await this.chatSessionData;
 
-        // setTimeout(() => {
-          const chatSession = this.chatSessionData;
           if (chatSession) {
-            this.getConversation(chatSession.data.id);
             this.$router.push(`chat/${chatSession.data.id}`);
           }
           else {
@@ -70,11 +64,7 @@
               message: 'Something went wrong'
             });
           }
-        // }, 2000);
+        }
       }
-    }
   }
 </script>
-
-<style>
-</style>

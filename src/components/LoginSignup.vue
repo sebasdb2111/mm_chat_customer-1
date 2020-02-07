@@ -16,12 +16,6 @@
       lazy-rules
       :rules="[val => (val !== null && val !== '') || 'Please type your email']"
 			label="Email" />
-		<!--<q-input-->
-			<!--v-model="formData.password"-->
-			<!--class="q-mb-md"-->
-			<!--outlined-->
-			<!--type="password"-->
-			<!--label="Password" />-->
     <q-input
       color="teal"
       outlined
@@ -142,7 +136,6 @@
 		methods: {
 			...mapActions('auth', ['login']),
 			...mapActions('customer', ['currentCustomer']),
-      ...mapActions('chatSession', ['chatSessions']),
       ...mapGetters('auth', ['loggedIn', 'customer']),
       checkAdultCustomer() {
         const adultCustomer = isoToday() > addEighteenYear(this.dateBirth);
@@ -172,15 +165,14 @@
 
         return correctPassword;
       },
-			submitForm() {
+			async submitForm() {
         if (this.tab === 'login') {
-          this.login({ email: this.formData.email, password: this.formData.password })
-          const customerLoggedIn = this.loggedIn;
-          const customer = this.customer;
+          await this.login({ email: this.formData.email, password: this.formData.password });
+          const customerLoggedIn = await this.loggedIn;
+          const customer = await this.customer;
 
           if (customerLoggedIn && customer) {
-            this.currentCustomer({token: customer.data});
-            this.chatSessions();
+            await this.currentCustomer({token: customer.data});
             this.$router.push('/');
           }
           else {
@@ -236,20 +228,6 @@
               });
           }
         }
-
-        // const customerLoggedIn = this.loggedIn();
-        //
-        // if (customerLoggedIn) {
-        //   this.$router.push('/');
-        // } else {
-        //   this.$q.notify({
-        //     color: 'red-5',
-        //     textColor: 'white',
-        //     icon: 'warning',
-        //     message:
-        //       'Email or password was not correct, please try again'
-        //   });
-        // }
 			}
 		}
 	}

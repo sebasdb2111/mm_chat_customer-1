@@ -6,9 +6,9 @@
     <q-toolbar class="bg-teal-3 text-white ">
       <q-toolbar-title>
         <q-avatar color="white" text-color="teal">
-          S<!--{{ chatSession.owner.firstName.charAt(0) }}-->
+          {{ psychic.charAt(0) }}
         </q-avatar>
-        Sebas
+        {{ psychic }}
       </q-toolbar-title>
     </q-toolbar>
     <div class="q-pa-md column col justify-end">
@@ -66,25 +66,41 @@
 	  	return {
 	  		newMessage: '',
 	  		showMessages: false,
-        messages: []
+        messages: [],
+        psychic: ''
 	  	}
 	  },
+    async created() {
+      await this.bringConversation();
+      await this.getChatSession(Number(this.$route.params.chatSessionId));
+      await this.psychicName();
+    },
 	  computed: {
 	  	...mapState('chatSession', ['conversation']),
 	  	...mapState('customer', ['customerDetails'])
 	  },
 	  methods: {
-	  	...mapActions('chatSession', [/*'getConversation',*/ 'sendMessage']),
+	  	...mapActions('chatSession', ['getConversation', 'sendMessage', 'getChatSession']),
+	  	...mapGetters('chatSession', ['chatSessionData']),
 	  	...mapGetters('customer', ['customerData']),
-      sendMessage(e) {
+      async psychicName() {
+        const chatSessionData = await this.chatSessionData();
+        this.psychic = `${chatSessionData.data.psychic.firstName} ${chatSessionData.data.psychic.lastName}`;
+        console.log(this.psychic)
+      },
+      async bringConversation() {
+	  	  const conversation = await this.getConversation(this.$route.params.chatSessionId);
+	  	  await this.mountConversation(conversation.data);
+      },
+      async sendMessage(e) {
         e.preventDefault();
         this.$store
           .dispatch('chatSession/sendMessage', {
             chatSessionId: Number(this.$route.params.chatSessionId),
             message: this.newMessage
           })
-          .then(message => {
-            const __ret = this.getCustomerAndSender(message.data);
+          .then(async message => {
+            const __ret = await this.getCustomerAndSender(message.data);
             const name = __ret.name;
 
             this.messages = [
@@ -109,11 +125,11 @@
             });
           });
 
-        this.clearMessage()
+        await this.clearMessage()
       },
-      mountConversation(conversation) {
-        conversation.forEach(msg => {
-          const __ret = this.getCustomerAndSender(msg);
+      async mountConversation(conversation) {
+        conversation.forEach(async msg => {
+          const __ret = await this.getCustomerAndSender(msg);
           const sent = __ret.sent;
           const name = __ret.name;
           const bgColor = __ret.bgColor;
@@ -131,8 +147,8 @@
 
         return this.messages;
       },
-      getCustomerAndSender(message) {
-        const customer = this.customerDetails;
+      async getCustomerAndSender(message) {
+        const customer = await this.customerDetails;
         let bgColor = 'teal-3';
         let sent = false;
         let name = '';
@@ -152,29 +168,26 @@
           message.customer.username === customer.username
         ) {
           name = `${customer.firstName} ${customer.lastName}`;
-          console.log('CUSTOMER NAME', name)
         } else {
           name = `${message.psychic.firstName} ${message.psychic.lastName}`;
-          console.log('MESSAGE NAME', name)
         }
 
         return { sent, name, bgColor };
       },
-	  	clearMessage() {
+      async clearMessage() {
 	  		this.newMessage = '';
 	  		this.$refs.newMessage.focus()
 	  	},
-	  	scrollToBottom() {
-	  		const pageChat = this.$refs.pageChat.$el
+      async scrollToBottom() {
+	  		const pageChat = this.$refs.pageChat.$el;
 	  		setTimeout(() => {
 		  		window.scrollTo(0, pageChat.scrollHeight)
 	  		}, 20);
 	  	}
 	  },
 	  watch: {
-      conversation: function(val) {
+      conversation: (val) => {
         const conversation = this.mountConversation(val.data);
-        console.log(conversation)
         if (Object.keys(conversation).length) {
 	  			this.scrollToBottom()
 	  			setTimeout(() => {

@@ -13,6 +13,16 @@ class ChatSessionService {
         console.log(error);
       });
   }
+  async chatSession(chatSessionId) {
+    return axios
+      .get(`${apiUrl}/chat-session/${chatSessionId}`, { headers: authHeader() })
+      .then((response) => {
+        return response;
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
     async chatSessionList() {
         return axios
             .get(`${apiUrl}/chat-session`, { headers: authHeader() })

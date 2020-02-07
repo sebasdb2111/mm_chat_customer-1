@@ -5,7 +5,7 @@
       separator>
       <q-item-label header>Active Chats</q-item-label>
       <q-item
-        v-for="(chatSession, key) in chatSessionList.data"
+        v-for="(chatSession, key) in chats"
         :key="key"
         :to="'/chat/' + chatSession.id"
         clickable
@@ -21,13 +21,6 @@
           <q-item-label caption lines="2">Created at: {{ convertIsoFormatWithHourAndMinutes(chatSession.createdAt) }}
           </q-item-label>
         </q-item-section>
-
-        <!--<q-item-section side>-->
-        <!--<q-badge-->
-        <!--:color="chatSession.online ? 'light-green-5' : 'grey-4'">-->
-        <!--{{ chatSession.online ? 'Online' : 'Offline' }}-->
-        <!--</q-badge>-->
-        <!--</q-item-section>-->
       </q-item>
 
     </q-list>
@@ -39,17 +32,25 @@
   import {convertIsoFormatWithHourAndMinutes} from '../servicies/date-utils'
 
   export default {
-    computed: {
-      ...mapActions('chatSession', ['chatSessions']),
-      ...mapGetters('chatSession', ['chatSessionList']),
+    async created() {
+      await this.chatSessions();
+      await this.activeChats();
+    },
+    data() {
+      return {
+        chats: []
+      }
     },
     methods: {
+      ...mapActions('chatSession', ['chatSessions']),
+      ...mapGetters('chatSession', ['chatSessionList']),
+      async activeChats() {
+        const chats = await this.chatSessionList();
+        this.chats = chats.data;
+      },
       convertIsoFormatWithHourAndMinutes(date) {
         return convertIsoFormatWithHourAndMinutes(date);
       }
     }
   }
 </script>
-
-<style>
-</style>

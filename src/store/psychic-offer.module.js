@@ -27,7 +27,6 @@ export const psychicOffer = {
   },
   getters: {
     psychicOfferListData: state => {
-      console.log('GETTER', state.psychicOffers)
       return state.psychicOffers;
     }
   }
