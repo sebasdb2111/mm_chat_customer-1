@@ -72,13 +72,51 @@
 	  },
     async created() {
       await this.bringConversation();
+      this.scrollToBottom();
       await this.getChatSession(Number(this.$route.params.chatSessionId));
       await this.psychicName();
+
+      this.$socket.client.on('psychic_send_message', async psychicMessage => {
+        if (psychicMessage.data.chatSession.id === Number(this.$route.params.chatSessionId))
+        {
+          const __ret = await this.getCustomerAndSender(psychicMessage.data);
+          const name = __ret.name;
+          const bgColor = __ret.bgColor;
+
+          this.messages = [
+            ...this.messages,
+            {
+              id: psychicMessage.data.id,
+              text: [psychicMessage.data.message],
+              deleted: psychicMessage.data.deleted,
+              stamp: psychicMessage.data.createdAt,
+              sent: false,
+              name,
+              bgColor
+            }
+          ];
+          this.scrollToBottom();
+        }
+      });
+    },
+    mounted() {
+      this.getConversation(this.$route.params.chatSessionId);
     },
 	  computed: {
 	  	...mapState('chatSession', ['conversation']),
 	  	...mapState('customer', ['customerDetails'])
 	  },
+    // watch: {
+    //   conversation: (val) => {
+    //     const conversation = this.mountConversation(val.data);
+    //     if (Object.keys(conversation).length) {
+    //       this.scrollToBottom();
+    //       setTimeout(() => {
+    //         // this.showMessages = true
+    //       }, 200)
+    //     }
+    //   }
+    // },
 	  methods: {
 	  	...mapActions('chatSession', ['getConversation', 'sendMessage', 'getChatSession']),
 	  	...mapGetters('chatSession', ['chatSessionData']),
@@ -86,7 +124,6 @@
       async psychicName() {
         const chatSessionData = await this.chatSessionData();
         this.psychic = `${chatSessionData.data.psychic.firstName} ${chatSessionData.data.psychic.lastName}`;
-        console.log(this.psychic)
       },
       async bringConversation() {
 	  	  const conversation = await this.getConversation(this.$route.params.chatSessionId);
@@ -103,6 +140,8 @@
             const __ret = await this.getCustomerAndSender(message.data);
             const name = __ret.name;
 
+            this.$socket.client.emit('customer_send_message', message);
+
             this.messages = [
               ...this.messages,
               {
@@ -115,6 +154,7 @@
                 bgColor: 'grey-3'
               }
             ];
+            this.scrollToBottom();
           })
           .catch(() => {
             this.$q.notify({
@@ -184,21 +224,7 @@
 		  		window.scrollTo(0, pageChat.scrollHeight)
 	  		}, 20);
 	  	}
-	  },
-	  watch: {
-      conversation: (val) => {
-        const conversation = this.mountConversation(val.data);
-        if (Object.keys(conversation).length) {
-	  			this.scrollToBottom()
-	  			setTimeout(() => {
-	  				// this.showMessages = true
-	  			}, 200)
-	  		}
-	  	}
-	  },
-	  // mounted() {
-      // this.getConversation(this.$route.params.chatSessionId);
-	  // }
+	  }
 	}
 </script>
 

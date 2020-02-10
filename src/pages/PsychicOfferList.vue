@@ -40,9 +40,25 @@
         loading: false
       }
     },
+    async created() {
+      await this.chatSessions();
+      await this.activeChats();
+
+      const chats = await this.chatSessionList();
+
+      this.$socket.client.on('psychic_online', psychic => {
+        let chat = chats.data.findIndex(el => el.psychic.id === psychic.id);
+        chats.data[chat].psychic.status = true;
+      });
+
+      this.$socket.client.on('psychic_offline', psychic => {
+        let chat = chats.data.findIndex(el => el.psychic.id === psychic.id);
+        chats.data[chat].psychic.status = false;
+      })
+    },
     computed: {
-      ...mapActions('chatSession', ['createChatSession', 'getConversation']),
-      ...mapGetters('chatSession', ['chatSessionData']),
+      ...mapActions('chatSession', ['createChatSession', 'getConversation', 'chatSessions']),
+      ...mapGetters('chatSession', ['chatSessionData', 'chatSessionList']),
       ...mapGetters('psychicOffer', ['psychicOfferListData']),
     },
     methods: {

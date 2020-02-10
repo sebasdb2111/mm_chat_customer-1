@@ -15,7 +15,9 @@
     "firebase": "^6.4.0",
     "moment": "^2.24.0",
     "quasar": "^1.0.0",
-    "vue-cli-plugin-axios": "0.0.4"
+    "socket.io-client": "^2.3.0",
+    "vue-cli-plugin-axios": "0.0.4",
+    "vue-socket.io-extended": "^4.0.1"
   },
   "devDependencies": {
     "@quasar/app": "^1.0.0",

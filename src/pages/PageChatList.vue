@@ -1,5 +1,5 @@
 <template>
-  <q-page class="flex q-pa-md">
+  <q-page class="flex">
     <q-list
       class="full-width"
       separator>
@@ -21,6 +21,9 @@
           <q-item-label caption lines="2">Created at: {{ convertIsoFormatWithHourAndMinutes(chatSession.createdAt) }}
           </q-item-label>
         </q-item-section>
+        <q-item-section side>
+          <p>{{ chatSession.psychic.status ? 'online' : 'offline' }}</p>
+        </q-item-section>
       </q-item>
 
     </q-list>
@@ -35,10 +38,22 @@
     async created() {
       await this.chatSessions();
       await this.activeChats();
+
+      const chats = await this.chatSessionList();
+
+      this.$socket.client.on('psychic_online', psychic => {
+        let chat = chats.data.findIndex(el => el.psychic.id === psychic.id);
+        chats.data[chat].psychic.status = true;
+      });
+
+      this.$socket.client.on('psychic_offline', psychic => {
+        let chat = chats.data.findIndex(el => el.psychic.id === psychic.id);
+        chats.data[chat].psychic.status = false;
+      })
     },
     data() {
       return {
-        chats: []
+        chats: [],
       }
     },
     methods: {

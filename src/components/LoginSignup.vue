@@ -172,8 +172,12 @@
           const customer = await this.customer;
 
           if (customerLoggedIn && customer) {
-            await this.currentCustomer({token: customer.data});
-            this.$router.push('/');
+            await this.currentCustomer({token: customer.data})
+              .then((customer) => {
+                this.$socket.client.emit('customer_online', customer);
+                this.$router.push('/');
+              }
+            );
           }
           else {
             this.$q.notify({
