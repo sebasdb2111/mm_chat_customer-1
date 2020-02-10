@@ -5,7 +5,7 @@ import PageChatList from '../pages/PageChatList.vue';
 import PageAuth from '../pages/PageAuth.vue';
 import PageChat from '../pages/PageChat.vue';
 import PsychicOfferList from '../pages/PsychicOfferList.vue';
-import Purchase from '../pages/Purchase.vue';
+// import Purchase from '../pages/Purchase.vue';
 
 Vue.use(VueRouter);
 
@@ -29,11 +29,29 @@ const router = new VueRouter({
         { path: '/auth', title: 'auth', component: PageAuth },
         { path: '/chat/:chatSessionId', title: 'chat', component: PageChat },
         { path: '/active-chats', title: 'pageChatList', component: PageChatList },
-        { path: '/purchase', title: 'purchase', component: Purchase },
+        // { path: '/purchase', title: 'purchase', component: Purchase },
         { path: '*', component: load('Error404') }
       ]
     }
   ]
+});
+
+router.beforeEach((to, from, next) => {
+  const loggedIn = !!localStorage.getItem('customerToken');
+
+  if (to.fullPath === '/auth' && loggedIn) {
+    next('/');
+  }
+
+  if (to.fullPath === '/chat/*' && !loggedIn) {
+    next('/auth');
+  }
+
+  if (to.fullPath === '/active-chats' && !loggedIn) {
+    next('/auth');
+  }
+
+  next();
 });
 
 export default router;
