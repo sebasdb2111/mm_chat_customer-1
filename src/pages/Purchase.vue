@@ -1,13 +1,13 @@
 <template>
-    <div>
-      Buy implementation
-    </div>
+	<div>
+		Buy implementation
+	</div>
 </template>
 
 <script>
-    export default {
-        name: "Purchase"
-    }
+	export default {
+		name: "Purchase"
+	}
 </script>
 
 <style scoped>
