@@ -1,230 +1,242 @@
 <template>
-  <q-page
-    ref="pageChat"
-    class="page-chat flex column"
-  >
-    <q-toolbar class="bg-teal-3 text-white ">
-      <q-toolbar-title>
-        <q-avatar color="white" text-color="teal">
-          {{ psychic.charAt(0) }}
-        </q-avatar>
-        {{ psychic }}
-      </q-toolbar-title>
-    </q-toolbar>
-    <div class="q-pa-md column col justify-end">
-      <q-infinite-scroll reverse>
-        <q-chat-message
-          v-for="(msg, index) in messages"
-          :key="`${index}`"
-          :sent="msg.sent"
-          :text-color="msg.textColor"
-          :bg-color="msg.bgColor"
-          :text="msg.text"
-          :name="msg.name"
-        />
-      </q-infinite-scroll>
-    </div>
-    <q-footer class="bg-teal shadow-2" elevated>
-      <q-toolbar>
-        <q-form
-          @submit="sendMessage"
-          class="full-width"
-        >
-          <q-input
-            v-model="newMessage"
-            @blur="scrollToBottom"
-            ref="newMessage"
-            bg-color="white"
-            outlined
-            rounded
-            placeholder="Type your message"
-            dense
-          >
-            <template v-slot:after>
-              <q-btn
-                round
-                dense
-                flat
-                type="submit"
-                color="white"
-                icon="send" />
-            </template>
-          </q-input>
-        </q-form>
-      </q-toolbar>
-    </q-footer>
-  </q-page>
+	<q-page
+		ref="pageChat"
+		class="page-chat flex column"
+	>
+		<q-toolbar class="bg-teal-3 text-white ">
+			<q-toolbar-title>
+				<q-avatar color="white" text-color="teal">
+					{{ psychic.charAt(0) }}
+				</q-avatar>
+				{{ psychic }}
+			</q-toolbar-title>
+		</q-toolbar>
+		<div class="q-pa-md column col justify-end">
+			<q-infinite-scroll reverse>
+				<div
+					v-for="(msg, index) in messages"
+					:key="`${index}`"
+				>
+					<div v-if="!msg.isImage">
+						<q-chat-message
+							:sent="msg.sent"
+							:text-color="msg.textColor"
+							:bg-color="msg.bgColor"
+							:text="msg.text"
+							:name="msg.name"
+						/>
+					</div>
+					<div v-else>
+						<q-chat-message
+							:sent="msg.sent"
+							:bg-color="msg.bgColor"
+							:name="msg.name"
+						>
+							<q-img
+								:src="msg.text[0]"
+								spinner-color="white"
+								style="height: 140px; max-width: 150px"
+							/>
+						</q-chat-message>
+					</div>
+				</div>
+			</q-infinite-scroll>
+		</div>
+		<q-footer class="bg-teal shadow-2" elevated>
+			<q-toolbar>
+				<q-form
+					@submit="sendMessage"
+					class="full-width"
+				>
+					<q-input
+						v-model="newMessage"
+						@blur="scrollToBottom"
+						ref="newMessage"
+						bg-color="white"
+						outlined
+						rounded
+						placeholder="Type your message"
+						dense
+					>
+						<template v-slot:after>
+							<q-btn
+								round
+								dense
+								flat
+								type="submit"
+								color="white"
+								icon="send"/>
+						</template>
+					</q-input>
+				</q-form>
+			</q-toolbar>
+		</q-footer>
+	</q-page>
 </template>
 
 <script>
-	import { mapState, mapActions, mapGetters } from 'vuex'
+	import {mapState, mapActions, mapGetters} from 'vuex'
 	import mixinOtherUserDetails from 'src/mixins/mixin-other-user-details.js'
 
 	export default {
 		mixins: [mixinOtherUserDetails],
-	  data() {
-	  	return {
-	  		newMessage: '',
-	  		showMessages: false,
-        messages: [],
-        psychic: ''
-	  	}
-	  },
-    async created() {
-      await this.bringConversation();
-      this.scrollToBottom();
-      await this.getChatSession(Number(this.$route.params.chatSessionId));
-      await this.psychicName();
+		data() {
+			return {
+				newMessage: '',
+				showMessages: false,
+				messages: [],
+				psychic: ''
+			}
+		},
+		async created() {
+			await this.bringConversation();
+			this.scrollToBottom();
+			await this.getChatSession(Number(this.$route.params.chatSessionId));
+			await this.psychicName();
 
-      this.$socket.client.on('psychic_send_message', async psychicMessage => {
-        if (psychicMessage.data.chatSession.id === Number(this.$route.params.chatSessionId))
-        {
-          const __ret = await this.getCustomerAndSender(psychicMessage.data);
-          const name = __ret.name;
-          const bgColor = __ret.bgColor;
+			this.$socket.client.on('psychic_send_message', async psychicMessage => {
+				if (psychicMessage.data.chatSession.id === Number(this.$route.params.chatSessionId)) {
+					const __ret = await this.getCustomerAndSender(psychicMessage.data);
+					const name = __ret.name;
+					const bgColor = __ret.bgColor;
 
-          this.messages = [
-            ...this.messages,
-            {
-              id: psychicMessage.data.id,
-              text: [psychicMessage.data.message],
-              deleted: psychicMessage.data.deleted,
-              stamp: psychicMessage.data.createdAt,
-              sent: false,
-              name,
-              bgColor
-            }
-          ];
-          this.scrollToBottom();
-        }
-      });
-    },
-    mounted() {
-      this.getConversation(this.$route.params.chatSessionId);
-    },
-	  computed: {
-	  	...mapState('chatSession', ['conversation']),
-	  	...mapState('customer', ['customerDetails'])
-	  },
-    // watch: {
-    //   conversation: (val) => {
-    //     const conversation = this.mountConversation(val.data);
-    //     if (Object.keys(conversation).length) {
-    //       this.scrollToBottom();
-    //       setTimeout(() => {
-    //         // this.showMessages = true
-    //       }, 200)
-    //     }
-    //   }
-    // },
-	  methods: {
-	  	...mapActions('chatSession', ['getConversation', 'sendMessage', 'getChatSession']),
-	  	...mapGetters('chatSession', ['chatSessionData']),
-	  	...mapGetters('customer', ['customerData']),
-      async psychicName() {
-        const chatSessionData = await this.chatSessionData();
-        this.psychic = `${chatSessionData.data.psychic.firstName} ${chatSessionData.data.psychic.lastName}`;
-      },
-      async bringConversation() {
-	  	  const conversation = await this.getConversation(this.$route.params.chatSessionId);
-	  	  await this.mountConversation(conversation.data);
-      },
-      async sendMessage(e) {
-        e.preventDefault();
-        this.$store
-          .dispatch('chatSession/sendMessage', {
-            chatSessionId: Number(this.$route.params.chatSessionId),
-            message: this.newMessage
-          })
-          .then(async message => {
-            const __ret = await this.getCustomerAndSender(message.data);
-            const name = __ret.name;
+					this.messages = [
+						...this.messages,
+						{
+							id: psychicMessage.data.id,
+							text: [psychicMessage.data.message],
+							deleted: psychicMessage.data.deleted,
+							isImage: psychicMessage.data.isImage,
+							stamp: psychicMessage.data.createdAt,
+							sent: false,
+							name,
+							bgColor
+						}
+					];
 
-            this.$socket.client.emit('customer_send_message', message);
+					this.scrollToBottom();
+				}
+			});
+		},
+		computed: {
+			...mapState('chatSession', ['conversation']),
+			...mapState('customer', ['customerDetails'])
+		},
+		// watch: {
+		//   conversation: (val) => {
+		//     const conversation = this.mountConversation(val.data);
+		//     if (Object.keys(conversation).length) {
+		//       this.scrollToBottom();
+		//       setTimeout(() => {
+		//         // this.showMessages = true
+		//       }, 200)
+		//     }
+		//   }
+		// },
+		methods: {
+			...mapActions('chatSession', ['getConversation', 'sendMessage', 'getChatSession']),
+			...mapGetters('chatSession', ['chatSessionData']),
+			...mapGetters('customer', ['customerData']),
+			async psychicName() {
+				const chatSessionData = await this.chatSessionData();
+				this.psychic = `${chatSessionData.data.psychic.firstName} ${chatSessionData.data.psychic.lastName}`;
+			},
+			async bringConversation() {
+				const conversation = await this.getConversation(Number(this.$route.params.chatSessionId));
+				await this.mountConversation(conversation.data);
+			},
+			async mountConversation(conversation) {
+				conversation.forEach(async msg => {
+					const __ret = await this.getCustomerAndSender(msg);
+					const sent = __ret.sent;
+					const name = __ret.name;
+					const bgColor = __ret.bgColor;
 
-            this.messages = [
-              ...this.messages,
-              {
-                id: message.data.id,
-                text: [message.data.message],
-                deleted: message.data.deleted,
-                stamp: message.data.createdAt,
-                sent: true,
-                name,
-                bgColor: 'grey-3'
-              }
-            ];
-            this.scrollToBottom();
-          })
-          .catch(() => {
-            this.$q.notify({
-              color: 'red-5',
-              textColor: 'white',
-              icon: 'checkmark',
-              message: 'Something went worng'
-            });
-          });
+					this.messages.push({
+						id: msg.id,
+						text: [msg.message],
+						deleted: msg.deleted,
+						isImage: msg.isImage,
+						stamp: msg.createdAt,
+						sent,
+						name,
+						bgColor
+					});
+				});
 
-        await this.clearMessage()
-      },
-      async mountConversation(conversation) {
-        conversation.forEach(async msg => {
-          const __ret = await this.getCustomerAndSender(msg);
-          const sent = __ret.sent;
-          const name = __ret.name;
-          const bgColor = __ret.bgColor;
+				return this.messages;
+			},
+			async getCustomerAndSender(message) {
+				const customer = await this.customerDetails;
 
-          this.messages.push({
-            id: msg.id,
-            text: [msg.message],
-            deleted: msg.deleted,
-            stamp: msg.createdAt,
-            sent,
-            name,
-            bgColor
-          });
-        });
+				let bgColor = 'teal-3';
+				let sent = false;
+				let name = `${message.psychic.firstName} ${message.psychic.lastName}`;
 
-        return this.messages;
-      },
-      async getCustomerAndSender(message) {
-        const customer = await this.customerDetails;
-        let bgColor = 'teal-3';
-        let sent = false;
-        let name = '';
+				if (
+					message.customer &&
+					message.customer.id === customer.id &&
+					message.customer.username === customer.username
+				) {
+					bgColor = 'grey-3';
+					sent = true;
+					name = `${customer.firstName} ${customer.lastName}`;
+				}
 
-        if (
-          message.customer &&
-          message.customer.id === customer.id &&
-          message.customer.username === customer.username
-        ) {
-          bgColor = 'grey-3';
-          sent = true;
-        }
+				return {sent, name, bgColor};
+			},
+			async sendMessage(e) {
+				e.preventDefault();
+				this.$store
+					.dispatch('chatSession/sendMessage', {
+						chatSessionId: Number(this.$route.params.chatSessionId),
+						message: this.newMessage,
+						isImage: false
+					})
+					.then(async message => {
+						const __ret = await this.getCustomerAndSender(message.data);
+						const name = __ret.name;
 
-        if (
-          message.customer &&
-          message.customer.id === customer.id &&
-          message.customer.username === customer.username
-        ) {
-          name = `${customer.firstName} ${customer.lastName}`;
-        } else {
-          name = `${message.psychic.firstName} ${message.psychic.lastName}`;
-        }
+						this.$socket.client.emit('customer_send_message', message);
 
-        return { sent, name, bgColor };
-      },
-      async clearMessage() {
-	  		this.newMessage = '';
-	  		this.$refs.newMessage.focus()
-	  	},
-      async scrollToBottom() {
-	  		const pageChat = this.$refs.pageChat.$el;
-	  		setTimeout(() => {
-		  		window.scrollTo(0, pageChat.scrollHeight)
-	  		}, 20);
-	  	}
-	  }
+						this.messages = [
+							...this.messages,
+							{
+								id: message.data.id,
+								text: [message.data.message],
+								deleted: message.data.deleted,
+								isImage: false,
+								stamp: message.data.createdAt,
+								sent: true,
+								name,
+								bgColor: 'grey-3',
+							}
+						];
+
+						this.scrollToBottom();
+					})
+					.catch(() => {
+						this.$q.notify({
+							color: 'red-5',
+							textColor: 'white',
+							icon: 'checkmark',
+							message: 'Something went worng'
+						});
+					});
+
+				await this.clearMessage()
+			},
+			async clearMessage() {
+				this.newMessage = '';
+				this.$refs.newMessage.focus()
+			},
+			async scrollToBottom() {
+				const pageChat = this.$refs.pageChat.$el;
+				setTimeout(() => {
+					window.scrollTo(0, pageChat.scrollHeight)
+				}, 20);
+			}
+		}
 	}
 </script>
 
