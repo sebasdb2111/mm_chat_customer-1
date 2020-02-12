@@ -61,6 +61,7 @@
 			...mapActions('chatSession', ['chatSessions']),
 			...mapGetters('chatSession', ['chatSessionList']),
 			async activeChats() {
+				//TODO: chek if this call is necessary
 				await this.chatSessions;
 				const chats = await this.chatSessionList();
 				this.chats = chats.data;
