@@ -5,7 +5,7 @@
 			separator>
 			<q-item-label header>Our Psychics</q-item-label>
 			<q-item
-				v-for="(offer, key) in psychicOfferListData"
+				v-for="(offer, key) in psychicOffersData"
 				:key="key"
 				@click="createChat(offer.psychic.id)"
 				clickable
@@ -25,6 +25,11 @@
 						Since: {{ convertIsoFormat(offer.psychic.createdAt) }}
 					</q-item-label>
 				</q-item-section>
+				<q-item-section side>
+					<p :class="offer.psychic.status ? 'text-teal' : 'text-red'">
+						{{ offer.psychic.status ? 'online' : 'offline' }}
+					</p>
+				</q-item-section>
 			</q-item>
 		</q-list>
 	</q-page>
@@ -37,25 +42,37 @@
 	export default {
 		data() {
 			return {
-				loading: false
+				loading: false,
+				psychicOffers: []
 			}
 		},
 		async created() {
-			const offer = await this.psychicOfferListData;
-
-			this.$socket.client.on('psychic_online', psychic => {
-				let chat = offer.findIndex(el => el.psychic.id === psychic.id);
-				offer[chat].psychic.status = true;
-			});
-			this.$socket.client.on('psychic_offline', psychic => {
-				let chat = offer.findIndex(el => el.psychic.id === psychic.id);
-				offer[chat].psychic.status = false;
-			});
+			this.psychicOffers = this.psychicOfferListData;
+		},
+		watch: {
+			psychicOfferListData() {
+				this.psychicOffers = this.psychicOfferListData;
+			}
 		},
 		computed: {
 			...mapActions('chatSession', ['createChatSession', 'chatSessions']),
 			...mapGetters('chatSession', ['chatSessionData', 'chatSessionList']),
 			...mapGetters('psychicOffer', ['psychicOfferListData']),
+			psychicOffersData() {
+				this.$socket.client.on('psychic_online', psychic => {
+					let indexOfPsychicOffer = this.psychicOffers.findIndex(el => el.psychic.id === psychic.id);
+					this.psychicOffers[indexOfPsychicOffer].psychic.status = true;
+					this.$set(this.psychicOffers, indexOfPsychicOffer, this.psychicOffers[indexOfPsychicOffer]);
+				});
+
+				this.$socket.client.on('psychic_offline', psychic => {
+					const indexOfPsychicOffer = this.psychicOffers.findIndex(el => el.psychic.id === psychic.id);
+					delete(this.psychicOffers[indexOfPsychicOffer].psychic.status);
+					this.$set(this.psychicOffers, indexOfPsychicOffer, this.psychicOffers[indexOfPsychicOffer]);
+				});
+
+				return this.psychicOffers;
+			}
 		},
 		methods: {
 			convertIsoFormat(date) {
