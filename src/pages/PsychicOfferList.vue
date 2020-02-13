@@ -48,6 +48,7 @@
 		},
 		async created() {
 			this.psychicOffers = this.psychicOfferListData;
+			this.$socket.client.emit('psychics-online-ping');
 		},
 		watch: {
 			psychicOfferListData() {
@@ -68,6 +69,21 @@
 				this.$socket.client.on('psychic_offline', psychic => {
 					const indexOfPsychicOffer = this.psychicOffers.findIndex(el => el.psychic.id === psychic.id);
 					delete(this.psychicOffers[indexOfPsychicOffer].psychic.status);
+					this.$set(this.psychicOffers, indexOfPsychicOffer, this.psychicOffers[indexOfPsychicOffer]);
+				});
+
+				// TODO: hay que mejorar esta iteracion
+				this.$socket.client.on('psychics_online_list', psychicsOnline => {
+					const indexOfPsychicOffer = this.psychicOffers.findIndex(psyOff => {
+						psychicsOnline.forEach(psychic => {
+							if (psychic.id === psyOff.psychic.id) {
+								psyOff.psychic.status = true;
+							}
+							else {
+								delete(psyOff.psychic.status);
+							}
+						})
+					});
 					this.$set(this.psychicOffers, indexOfPsychicOffer, this.psychicOffers[indexOfPsychicOffer]);
 				});
 

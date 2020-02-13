@@ -104,8 +104,8 @@
 			async closeSession() {
 				await this.logout();
 				const customerData = await this.customerData();
-				this.$socket.client.emit('customer_offline', customerData);
 				this.$socket.client.emit('disconnect');
+				this.$socket.client.emit('customer_offline', customerData);
 			}
 		}
 	};
