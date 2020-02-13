@@ -48,7 +48,6 @@
 
 			const chats = this.chatSessionList;
 			this.chats = chats.data;
-			// this.$socket.client.emit('customers-online-ping');
 		},
 		watch: {
 			chatSessionList() {
