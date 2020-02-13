@@ -1,64 +1,80 @@
-import axios from 'axios';
-import {apiUrl} from './global-variables.js';
+import axios      from 'axios';
+import {apiUrl}   from './global-variables.js';
 import authHeader from './auth-header';
 
-class ChatSessionService {
-	createChatSession(data) {
+class ChatSessionService
+{
+	createChatSession(data)
+	{
 		return axios
 			.post(`${apiUrl}/chat-session`, data, {headers: authHeader()})
-			.then(function (response) {
-				return response;
-			})
-			.catch(function (error) {
-				console.log(error);
-			});
+			.then(function (response)
+				  {
+					  return response;
+				  })
+			.catch(function (error)
+				   {
+					   console.log(error);
+				   });
 	}
 
-	async chatSession(chatSessionId) {
+	async chatSession(chatSessionId)
+	{
 		return axios
 			.get(`${apiUrl}/chat-session/${chatSessionId}`, {headers: authHeader()})
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				console.log(error);
-			});
+			.then((response) =>
+				  {
+					  return response;
+				  })
+			.catch((error) =>
+				   {
+					   console.log(error);
+				   });
 	}
 
-	async chatSessionList() {
+	async chatSessionList()
+	{
 		return axios
 			.get(`${apiUrl}/chat-session`, {headers: authHeader()})
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				console.log(error);
-			});
+			.then((response) =>
+				  {
+					  return response;
+				  })
+			.catch((error) =>
+				   {
+					   console.log(error);
+				   });
 	}
 
-	getConversation(chatSessionId) {
+	getConversation(chatSessionId)
+	{
 		return axios
 			.get(
 				`${apiUrl}/chat-session-message/by-chat-session/${chatSessionId}`,
 				{headers: authHeader()}
 			)
-			.then(function (response) {
-				return response;
-			})
-			.catch(function (error) {
-				console.log(error);
-			});
+			.then(function (response)
+				  {
+					  return response;
+				  })
+			.catch(function (error)
+				   {
+					   console.log(error);
+				   });
 	}
 
-	sendMessage(messageData) {
+	sendMessage(messageData)
+	{
 		return axios
 			.post(`${apiUrl}/chat-session-message`, messageData, {headers: authHeader()})
-			.then(function (response) {
-				return response;
-			})
-			.catch(function (error) {
-				console.log(error);
-			});
+			.then(function (response)
+				  {
+					  return response;
+				  })
+			.catch(function (error)
+				   {
+					   console.log(error);
+				   });
 	}
 }
 
