@@ -70,6 +70,21 @@
 					this.$set(this.chats, indexOfChat, this.chats[indexOfChat]);
 				});
 
+				// TODO: hay que mejorar esta iteracion
+				this.$socket.client.on('psychics_online_list', psychicsOnline => {
+					const indexOfPsychicOffer = this.psychicOffers.findIndex(psyOff => {
+						psychicsOnline.forEach(psychic => {
+							if (psychic.id === psyOff.psychic.id) {
+								psyOff.psychic.status = true;
+							}
+							else {
+								delete(psyOff.psychic.status);
+							}
+						})
+					});
+					this.$set(this.psychicOffers, indexOfPsychicOffer, this.psychicOffers[indexOfPsychicOffer]);
+				});
+
 				return this.chats;
 			}
 		},

@@ -276,7 +276,6 @@
 			},
 			async getAvailaibleCoins(psychicId)
 			{
-				console.log('11111111', psychicId)
 				await this.getCreditSumByCustomerAndPsychic(psychicId);
 				const credits = await this.getCreditsPerChat();
 				this.coins = credits.data.availableCoins;
