@@ -135,11 +135,11 @@
 			}
 		},
 		methods: {
-			...mapActions('auth', ['login']),
+			...mapActions('auth', ['login', 'signup']),
 			...mapActions('customer', ['currentCustomer']),
 			...mapGetters('auth', ['loggedIn', 'customer']),
 			checkAdultCustomer() {
-				const adultCustomer = isoToday() > addEighteenYear(this.dateBirth);
+				const adultCustomer = isoToday() > addEighteenYear(this.formData.dateBirth);
 
 				if (!adultCustomer) {
 					this.$q.notify({
@@ -153,7 +153,7 @@
 				return adultCustomer;
 			},
 			checkSamePassword() {
-				const correctPassword = this.password === this.retypePassword;
+				const correctPassword = this.formData.password === this.formData.retypePassword;
 
 				if (!correctPassword) {
 					this.$q.notify({
@@ -190,23 +190,35 @@
 					}
 				} else {
 					const adultCustomer = this.checkAdultCustomer();
+					//const adultCustomer = true;
 					const correctPassword = this.checkSamePassword();
+					console.log(
+						'datos customer',
+						{
+							username: this.formData.username,
+							email: this.formData.email,
+							password: this.formData.password,
+							firstName: this.formData.firstName,
+							lastName: this.formData.lastName,
+							dateBirth: this.formData.dateBirth
+						}
+					)
 
 					if (
 						adultCustomer &&
 						correctPassword &&
-						null !== this.formData.username &&
-						null !== this.formData.firstName &&
-						null !== this.formData.lastName &&
-						null !== this.formData.email
+						this.formData.username &&
+						this.formData.firstName &&
+						this.formData.lastName &&
+						this.formData.email
 					) {
-						this.signup({
-							username: this.username,
-							email: this.email,
-							password: this.password,
-							firstName: this.firstName,
-							lastName: this.lastName,
-							dateBirth: this.dateBirth
+						await this.signup({
+							username: this.formData.username,
+							email: this.formData.email,
+							password: this.formData.password,
+							firstName: this.formData.firstName,
+							lastName: this.formData.lastName,
+							dateBirth: this.formData.dateBirth
 						})
 							.then(() => {
 								this.$q.notify({

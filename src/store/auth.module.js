@@ -25,8 +25,8 @@ export const auth = {
 			AuthService.logoutCustomer();
 			commit('logout');
 		},
-		signup({commit}, customerToken) {
-			return AuthService.createCustomer(customerToken).then(
+		signup({commit}, customerData) {
+			return AuthService.createCustomer(customerData).then(
 				response => {
 					commit('singupSuccess');
 					return response.data;
