@@ -28,8 +28,7 @@ export const auth = {
       signup({ commit }, customerToken) {
         return AuthService.createCustomer(customerToken).then(
           response => {
-            commit('singupSuccess');
-            return response.data;
+            return response;
           },
           error => {
             commit('singupFailure');
