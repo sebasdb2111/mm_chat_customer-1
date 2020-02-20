@@ -28,8 +28,9 @@ export const auth = {
 		signup({commit}, customerData) {
 			return AuthService.createCustomer(customerData).then(
 				response => {
-					commit('singupSuccess');
-					return response.data;
+					// commit('singupSuccess');
+					console.log(response)
+					return response;
 				},
 				error => {
 					commit('singupFailure');
@@ -51,9 +52,9 @@ export const auth = {
 			state.loggedIn = false;
 			state.customerToken = null;
 		},
-		singupSuccess(state) {
-			state.status.loggedIn = false;
-		},
+		// singupSuccess(state) {
+		// 	state.status.loggedIn = false;
+		// },
 		singupFailure(state) {
 			state.status.loggedIn = false;
 		}

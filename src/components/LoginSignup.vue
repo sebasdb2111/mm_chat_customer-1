@@ -190,19 +190,7 @@
 					}
 				} else {
 					const adultCustomer = this.checkAdultCustomer();
-					//const adultCustomer = true;
 					const correctPassword = this.checkSamePassword();
-					console.log(
-						'datos customer',
-						{
-							username: this.formData.username,
-							email: this.formData.email,
-							password: this.formData.password,
-							firstName: this.formData.firstName,
-							lastName: this.formData.lastName,
-							dateBirth: this.formData.dateBirth
-						}
-					)
 
 					if (
 						adultCustomer &&
@@ -212,37 +200,35 @@
 						this.formData.lastName &&
 						this.formData.email
 					) {
-						await this.signup({
+						const userCreated = await this.signup({
 							username: this.formData.username,
 							email: this.formData.email,
 							password: this.formData.password,
 							firstName: this.formData.firstName,
 							lastName: this.formData.lastName,
 							dateBirth: this.formData.dateBirth
-						})
-							.then(() => {
-								this.$q.notify({
-									color: 'teal',
-									textColor: 'white',
-									icon: 'checkmark',
-									message: 'Account created, please login!'
-								});
+						});
 
-								setTimeout(() => {
-									this.$router.go();
-								}, 2000);
-
-								this.loading = false;
-							})
-							.catch(() => {
-								this.loading = false;
-								this.$q.notify({
-									color: 'red-5',
-									textColor: 'white',
-									icon: 'checkmark',
-									message: 'Make sure your data is correct'
-								});
+						if (userCreated) {
+							this.$q.notify({
+							   color: 'teal',
+							   textColor: 'white',
+							   icon: 'checkmark',
+							   message: 'Account created, please login!'
 							});
+							setTimeout(() => {
+								this.$router.go();
+							}, 1000);
+						}
+						else {
+							this.loading = false;
+							this.$q.notify({
+							   color: 'red-5',
+							   textColor: 'white',
+							   icon: 'checkmark',
+							   message: 'Make sure your data is correct'
+							});
+						}
 					}
 				}
 			}
